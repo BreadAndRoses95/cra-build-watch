@@ -8,7 +8,7 @@ const path = require('path');
 const ora = require('ora');
 
 const {
-  flags: { buildPath, publicPath, reactScriptsVersion, verbose },
+  flags: { buildPath, publicPath, reactScriptsVersion, verbose, jsonpFunction },
 } = require('../utils/cliHandler');
 const { getReactScriptsVersion, isEjected } = require('../utils');
 
@@ -23,8 +23,8 @@ const config =
         ? importCwd('./config/webpack.config')
         : importCwd('react-scripts/config/webpack.config'))('development')
     : isEjected
-      ? importCwd('./config/webpack.config.dev')
-      : importCwd('react-scripts/config/webpack.config.dev');
+    ? importCwd('./config/webpack.config.dev')
+    : importCwd('react-scripts/config/webpack.config.dev');
 
 const HtmlWebpackPlugin = importCwd('html-webpack-plugin');
 const InterpolateHtmlPlugin = importCwd('react-dev-utils/InterpolateHtmlPlugin');
@@ -58,6 +58,7 @@ config.output.path = resolvedBuildPath;
 config.output.publicPath = publicPath || '';
 config.output.filename = `js/bundle.js`;
 config.output.chunkFilename = `js/[name].chunk.js`;
+config.output.jsonpFunction = jsonpFunction || config.output.jsonpFunction;
 
 // update media path destination
 if (major >= 2) {
@@ -95,8 +96,7 @@ spinner.start('Clear destination folder');
 
 let inProgress = false;
 
-fs
-  .emptyDir(paths.appBuild)
+fs.emptyDir(paths.appBuild)
   .then(() => {
     spinner.succeed();
 

@@ -16,6 +16,8 @@ module.exports = meow(
 
       -v, --verbose
 
+      -j --jsonpFunction jsonpFunction name
+
     Examples
       $ cra-build-watch -b dist/ -p /assets
 `,
@@ -35,6 +37,10 @@ module.exports = meow(
       verbose: {
         type: 'boolean',
         alias: 'v',
+      },
+      jsonpFunction: {
+        type: 'string',
+        alias: 'j',
       },
     },
   }
