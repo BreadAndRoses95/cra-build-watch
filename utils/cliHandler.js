@@ -16,7 +16,9 @@ module.exports = meow(
 
       -v, --verbose
 
-      -j --jsonpFunction jsonpFunction name
+      -j, --jsonpFunction jsonpFunction name
+
+      -o, --override
 
     Examples
       $ cra-build-watch -b dist/ -p /assets
@@ -37,6 +39,10 @@ module.exports = meow(
       verbose: {
         type: 'boolean',
         alias: 'v',
+      },
+      override: {
+        type: 'boolean',
+        alias: 'o',
       },
       jsonpFunction: {
         type: 'string',

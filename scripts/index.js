@@ -6,9 +6,10 @@ const importCwd = require('import-cwd');
 const fs = require('fs-extra');
 const path = require('path');
 const ora = require('ora');
+const overrideFunction = require('../../../config-overrides');
 
 const {
-  flags: { buildPath, publicPath, reactScriptsVersion, verbose, jsonpFunction },
+  flags: { buildPath, publicPath, reactScriptsVersion, verbose, jsonpFunction, override },
 } = require('../utils/cliHandler');
 const { getReactScriptsVersion, isEjected } = require('../utils');
 
@@ -48,6 +49,10 @@ config.plugins = config.plugins.filter(
   plugin => !(plugin instanceof webpack.HotModuleReplacementPlugin)
 );
 
+if (override) {
+  overrideFunction(config, process.env.NODE_ENV);
+}
+
 /**
  * We also need to update the path where the different files get generated.
  */
@@ -55,41 +60,12 @@ const resolvedBuildPath = buildPath ? handleBuildPath(buildPath) : paths.appBuil
 
 // update the paths in config
 config.output.path = resolvedBuildPath;
-config.output.publicPath = publicPath || '';
-config.output.filename = `js/bundle.js`;
-config.output.chunkFilename = `js/[name].chunk.js`;
 config.output.jsonpFunction = jsonpFunction || config.output.jsonpFunction;
 
 // update media path destination
-if (major >= 2) {
-  // 2.0.0 => 2
-  // 2.0.1 => 3
-  // 2.0.2 => 3
-  // 2.0.3 => 3
-  // 2.0.4 to 3.0.0 => 2
-  const oneOfIndex = concatenatedVersion === 200 || concatenatedVersion >= 204 ? 2 : 3;
-  config.module.rules[oneOfIndex].oneOf[0].options.name = `media/[name].[hash:8].[ext]`;
-  config.module.rules[oneOfIndex].oneOf[7].options.name = `media/[name].[hash:8].[ext]`;
-} else {
-  config.module.rules[1].oneOf[0].options.name = `media/[name].[hash:8].[ext]`;
-  config.module.rules[1].oneOf[3].options.name = `media/[name].[hash:8].[ext]`;
-}
-
-let htmlPluginIndex = 1;
-let interpolateHtmlPluginIndex = 0;
-if (major >= 2) {
-  htmlPluginIndex = 0;
-  interpolateHtmlPluginIndex = 1;
-}
 
 // we need to override the InterpolateHtmlPlugin because in dev mod
 // they don't provide it the PUBLIC_URL env
-config.plugins[interpolateHtmlPluginIndex] = new InterpolateHtmlPlugin(HtmlWebpackPlugin, env.raw);
-config.plugins[htmlPluginIndex] = new HtmlWebpackPlugin({
-  inject: true,
-  template: paths.appHtml,
-  filename: 'index.html',
-});
 
 spinner.succeed();
 spinner.start('Clear destination folder');
